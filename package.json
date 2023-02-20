@@ -1,0 +1,16 @@
+{
+  "name": "react-bpmn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "workspaces": [
+    "packages/bpmn",
+    "packages/extension"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w bpmn",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
