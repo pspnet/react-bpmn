@@ -65,15 +65,20 @@ onMounted(async () => {
 
   const rootElements: BaseElement[] = rootElement.get('rootElements');
   const progress = rootElements.find(element => element.$type === "bpmn:Process") as Process;
-  const userTask = moddle.create("bpmn:UserTask", {name: "节点2"});
-  const progressChildren =  progress.get("flowElements");
+  const userTask = moddle.create("bpmn:UserTask", {id: "id_usertask_1", name: "节点2"});
+  const progressChildren = progress.get("flowElements");
   progressChildren.push(userTask);
 
-  const diagrams = rootElement.get("diagrams");
-  // const plane = diagrams.get("plane");
+  const diagrams = rootElement.diagrams;
+  const plane = diagrams[0].plane;
+  const planeElements = plane.get('planeElement');
+  planeElements.push(moddle.create('bpmndi:BPMNShape', {
+    id: 'Start_di',
+    bpmnElement: userTask,
+    bounds: moddle.create('dc:Bounds', {x: 50, y: 50, width: 100, height: 100})
+  }));
 
-
-  console.log(123, rootElement, diagrams.plane);
+  console.log(123, rootElement, plane);
 
   //@ts-ignore
   const result = await moddle.toXML(rootElement);
