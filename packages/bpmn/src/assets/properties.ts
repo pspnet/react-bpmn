@@ -1,10 +1,40 @@
-const documentation = {
+export interface ElementPropertyAttribute {
+    key: string;
+    label: string;
+    type?: string;
+    required?: boolean;
+    value?: any;
+    component?: [any] | [any, Record<string, any>];
+}
+
+enum ElementType {
+    DEFINITIONS = "bpmn:Definitions",
+    PROGRESS = "bpmn:Progress",
+    START_EVENT = "bpmn:StartEvent",
+    END_EVENT = "bpmn:EndEvent",
+    SEQUENCE_FLOW = "bpmn:SequenceFlow",
+    EXCLUSIVE_GATE = "bpmn:ExclusiveGateway",
+    USER_TASK = "bpmn:UserTask",
+    SERVICE_TASK = "bpmn:ServiceTask"
+}
+
+export interface ElementAttribute {
+    [key: string]: {
+        title?: string;
+        properties: ElementPropertyAttribute[]
+    }
+}
+
+import {markRaw} from "vue";
+import {Switch} from "ant-design-vue";
+
+const documentation: ElementPropertyAttribute = {
     key: "documentation",
     label: "文档",
     type: "Documentation",
 };
 
-const elements = {
+const elements: ElementAttribute = {
     "bpmn:Definitions": {
         properties: [
             {
@@ -31,6 +61,7 @@ const elements = {
                 label: "可执行文件",
                 value: true,
                 type: "Boolean",
+                component: [markRaw(Switch)]
             },
             {
                 key: "versionTag",

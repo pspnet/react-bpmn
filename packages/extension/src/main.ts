@@ -6,6 +6,8 @@ import StartEvent from "./event/StartEvent";
 import ServiceTask from "./task/ServiceTask";
 import UserTask from "./task/UserTask";
 
+import {getBpmnId} from "./util";
+
 class BpmnPlugin {
     static pluginName = 'bpmnPlugin';
 
@@ -24,5 +26,5 @@ class BpmnPlugin {
 
 }
 
-export {SequenceFlow, ExclusiveGateway}
+export {getBpmnId, ExclusiveGateway, EndEvent, StartEvent, ServiceTask, UserTask, SequenceFlow};
 export default BpmnPlugin;

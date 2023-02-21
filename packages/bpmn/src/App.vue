@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import {onMounted, ref, reactive} from "vue";
+import {onMounted, ref, watch, reactive} from "vue";
 import LogicFlow from '@logicflow/core'
 import "@logicflow/core/dist/style/index.css";
 import BpmnPlugin from "extension/src/main";
 
-import BpmnModdle from 'bpmn-moddle';
+import CustomFormItem from "./components/CustomFormItem.vue";
+
+import BpmnModdle, {BaseElement, Process} from 'bpmn-moddle';
 
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
+import elementProperties from "./assets/properties"
+import sample from "./assets/sample"
+import xml from "./assets/test"
+
+import type {ElementPropertyAttribute} from "./assets/properties";
 
 const moddle = new BpmnModdle({camunda: camundaModdle});
 
-const serviceTask = moddle.create('bpmn:ServiceTask', {
-  'javaDelegate': 'my.company.SomeDelegate'
-});
-
-console.log(serviceTask, moddle, camundaModdle);
-
-const canvasRef = ref(null);
+const lf = ref<LogicFlow>();
+const canvasRef = ref<HTMLElement>();
 const modalVisible = ref<boolean>(false);
 
-const modelRef = reactive({
-  name: '',
-  region: undefined,
-  type: [],
-});
+const formData = reactive({});
+const currentElementProperties = ref<ElementPropertyAttribute[]>([]);
 
 const config = {
   nodes: [
@@ -52,20 +51,51 @@ const config = {
   ]
 }
 
-console.log(canvasRef.value);
+const dataToXML = () => {
+  console.log("data2xml", formData, lf.value);
+}
 
-onMounted(() => {
-  const lf = new LogicFlow({
-    container: canvasRef.value as unknown as HTMLElement,
+watch(formData, (value) => {
+  console.log(666, value);
+})
+
+onMounted(async () => {
+  //@ts-ignore
+  const {rootElement} = await moddle.fromXML(xml);
+
+  const rootElements: BaseElement[] = rootElement.get('rootElements');
+  const progress = rootElements.find(element => element.$type === "bpmn:Process") as Process;
+  const userTask = moddle.create("bpmn:UserTask", {name: "节点2"});
+  const progressChildren =  progress.get("flowElements");
+  progressChildren.push(userTask);
+
+  const diagrams = rootElement.get("diagrams");
+  // const plane = diagrams.get("plane");
+
+
+  console.log(123, rootElement, diagrams.plane);
+
+  //@ts-ignore
+  const result = await moddle.toXML(rootElement);
+
+  console.log(rootElement, result, moddle);
+
+
+  lf.value = new LogicFlow({
+    container: canvasRef.value as HTMLElement,
     grid: true,
     plugins: [BpmnPlugin]
   });
-  lf.on('node:click,edge:click', (data) => {
+  lf.value.on('node:click,edge:click', (data) => {
     console.log("click", data);
+    const {type} = data.data;
+    if (type && elementProperties[type]?.properties) {
+      currentElementProperties.value = elementProperties[type].properties;
+    }
     if (!modalVisible.value)
       modalVisible.value = true;
   })
-  lf.render(config);
+  lf.value.render(config);
 })
 </script>
 <template>
@@ -74,11 +104,14 @@ onMounted(() => {
       v-model:visible="modalVisible"
       :mask="false"
       title="Basic Drawer"
-      placement="right"
+      placement="bottom"
   >
-    <a-form>
-      <a-form-item label="Activity name" required>
-        <a-input v-model:value="modelRef.name"/>
+    <a-form layout="inline" :model="formData">
+      <a-form-item v-for="item in currentElementProperties" :label="item.label" :required="item.required">
+        <custom-form-item :item="item" v-model:value="formData[item.key]"/>
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" @click="dataToXML">toXML</a-button>
       </a-form-item>
     </a-form>
   </a-drawer>
