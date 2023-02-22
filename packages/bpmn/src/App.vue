@@ -5,7 +5,7 @@ import "@logicflow/core/dist/style/index.css";
 import BpmnPlugin from "extension/src/main";
 
 import CustomFormItem from "./components/CustomFormItem.vue";
-import DataAdapter from "./util";
+import { DataAdapterIn, DataAdapterOut } from "./adapter";
 
 import elementProperties from "./assets/properties";
 
@@ -68,17 +68,17 @@ onMounted(async () => {
     plugins: [BpmnPlugin],
   });
   lf.value.on("node:click,edge:click", data => {
-    console.log("click", data);
     const { type } = data.data;
+    console.log("click", data, type, elementProperties);
     if (type && elementProperties[type]?.properties) {
       currentElementProperties.value = elementProperties[type].properties;
     }
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.value.render(config);
-  const dataAdapterInstance = new DataAdapter(lf.value);
-  const text = await dataAdapterInstance.configToXML();
-  console.log("xml", text);
+  const xml = await new DataAdapterOut(lf.value).configToXml();
+  const moddle = await new DataAdapterIn(lf.value).xmlToConfig(xml.xml);
+  console.log("xml", xml, moddle);
 });
 </script>
 <template>

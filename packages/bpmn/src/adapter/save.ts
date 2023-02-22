@@ -8,7 +8,7 @@ import camundaModdle from "camunda-bpmn-moddle/resources/camunda.json";
 import xml from "../assets/test";
 import sample from "../assets/sample";
 
-class DataAdapter {
+class DataAdapterOut {
   private lf: LogicFlow;
   readonly graphData: GraphConfigData;
   private moddle: Moddle;
@@ -135,7 +135,7 @@ class DataAdapter {
     return rootElement;
   }
 
-  async configToXML(format: boolean = true) {
+  async configToXml(format: boolean = true) {
     const rootElement = await this.configToModdle();
     //@ts-ignore
     const xmlEntity = await this.moddle.toXML(rootElement, { format });
@@ -143,4 +143,4 @@ class DataAdapter {
   }
 }
 
-export default DataAdapter;
+export default DataAdapterOut;
