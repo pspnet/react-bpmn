@@ -5,7 +5,8 @@ import "@logicflow/core/dist/style/index.css";
 import BpmnPlugin from "extension/src/main";
 
 import CustomFormItem from "./components/CustomFormItem.vue";
-import { configToXML } from "./util";
+import DataAdapter from "./util";
+
 import elementProperties from "./assets/properties";
 
 import type { ElementPropertyAttribute } from "./assets/properties";
@@ -25,10 +26,6 @@ const config: GraphConfigData = {
       x: 160,
       y: 100,
       text: "节点1",
-      properties: {
-        width: 36,
-        height: 36,
-      },
     },
     {
       id: "UserTask_0to9qv1",
@@ -36,25 +33,22 @@ const config: GraphConfigData = {
       x: 360,
       y: 200,
       text: "节点2",
-      properties: {
-        width: 100,
-        height: 180,
-        radius: 10,
-      },
     },
   ],
   edges: [
     {
+      id: "FLOW_3aed1n8",
+      type: "polyline",
       sourceNodeId: "StartEvent_1sc8phk",
       targetNodeId: "UserTask_0to9qv1",
-      type: "polyline",
-      text: { value: "连线", x: 282, y: 153 },
-      pointsList: [
-        { x: 196, y: 118 },
-        { x: 278, y: 118 },
-        { x: 278, y: 240 },
-        { x: 360, y: 240 },
-      ],
+      text: "连线连线连线",
+      // text: { value: "连线", x: 282, y: 153 },
+      // pointsList: [
+      //   { x: 178, y: 100 },
+      //   { x: 280, y: 100 },
+      //   { x: 280, y: 200 },
+      //   { x: 310, y: 200 },
+      // ],
     },
   ],
 };
@@ -64,7 +58,7 @@ const dataToXML = () => {
 };
 
 watch(formData, value => {
-  console.log(666, value);
+  console.log("formData", value);
 });
 
 onMounted(async () => {
@@ -82,10 +76,9 @@ onMounted(async () => {
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.value.render(config);
-  const s = lf.value.getGraphData().getNodeModelById("StartEvent_1sc8phk").height;
-  console.log(s, lf.value.getGraphData());
-  const text = await configToXML(config);
-  console.log(1, text);
+  const dataAdapterInstance = new DataAdapter(lf.value);
+  const text = await dataAdapterInstance.configToXML();
+  console.log("xml", text);
 });
 </script>
 <template>
