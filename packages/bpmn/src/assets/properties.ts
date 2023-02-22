@@ -9,6 +9,7 @@ export interface ElementPropertyAttribute {
 
 export interface ElementAttribute {
   [key: string]: {
+    _type?: "node" | "edge";
     title?: string;
     properties: ElementPropertyAttribute[];
   };
@@ -34,6 +35,7 @@ const elements: ElementAttribute = {
     ],
   },
   "bpmn:startEvent": {
+    _type: "node",
     title: "开始",
     properties: [
       {
@@ -65,6 +67,7 @@ const elements: ElementAttribute = {
   },
 
   "bpmn:userTask": {
+    _type: "node",
     title: "用户任务",
     properties: [
       { key: "assignee", label: "受理人" },
