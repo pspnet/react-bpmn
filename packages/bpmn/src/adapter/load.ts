@@ -9,6 +9,7 @@ class DataAdapterIn {
   private lf: LogicFlow;
   readonly graphData: GraphConfigData;
   private moddle: Moddle;
+
   constructor(lf: LogicFlow) {
     this.lf = lf;
     this.graphData = lf.getGraphData();
@@ -23,11 +24,11 @@ class DataAdapterIn {
   async xmlToConfig(xml: string) {
     // @ts-ignore
     const { rootElement, elementsById } = await this.moddle.fromXML(xml);
-    console.log("xmlToConfig", rootElement, elementsById);
     const { rootElements, diagrams } = rootElement;
 
     //nodes
     const nodes: NodeConfig[] = [];
+    const nodeMap: { [key: string]: NodeConfig } = {};
     for (let element of rootElements) {
       if (element.$type !== "bpmn:Process") break;
       const { flowElements } = element;
@@ -36,17 +37,18 @@ class DataAdapterIn {
           (properties[item.$type] || properties[`bpmn:${this.getTypeName(item)}`])._type === "node",
       );
       for (let nodeElement of nodeElements) {
-        const descriptor = this.moddle.getElementDescriptor(nodeElement);
+        // const descriptor = this.moddle.getElementDescriptor(nodeElement);
         const { $type, id, name, ...rest } = nodeElement;
-        console.log($type, id, name, rest);
-        nodes.push({
+        const node = {
           id,
           type: `bpmn:${this.getTypeName(nodeElement)}`,
           text: name,
           properties: rest,
           x: 0,
           y: 0,
-        });
+        };
+        nodeMap[id] = node;
+        nodes.push(node);
       }
 
       //edges
@@ -56,10 +58,27 @@ class DataAdapterIn {
         const { planeElement } = plane;
         for (let edgeElement of planeElement) {
           if (edgeElement.$type === "bpmndi:BPMNEdge") {
-            console.log("bpmndi:BPMNEdge", edgeElement);
+            const { label, waypoint, bpmnElement } = edgeElement;
+            const { id, name, sourceRef, targetRef } = bpmnElement;
+            const { bounds } = label;
+            const sourceNodeId = sourceRef.id;
+            const targetNodeId = targetRef.id;
+            const edge = {
+              id,
+              text: { value: name, x: bounds.x, y: bounds.y },
+              sourceNodeId,
+              targetNodeId,
+              properties: {},
+            };
+            edges.push(edge);
           }
           if (edgeElement.$type === "bpmndi:BPMNShape") {
-            console.log("bpmndi:BPMNShape", edgeElement);
+            const { bounds, bpmnElement } = edgeElement;
+            const { x, y, width, height } = bounds;
+            const { id } = bpmnElement;
+            const targetElement = nodeMap[id];
+            targetElement.x = x + width / 2;
+            targetElement.y = y + height / 2;
           }
         }
       }
