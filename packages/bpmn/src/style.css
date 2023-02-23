@@ -5,3 +5,7 @@ html, body, #app {
 .canvas {
     height: 100%;
 }
+
+.icon {
+    font-size: large;
+}
