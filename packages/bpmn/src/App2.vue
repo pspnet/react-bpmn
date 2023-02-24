@@ -6,13 +6,14 @@ import Bpmn from "extension/src/main";
 
 import CustomToolbar from "./components/CustomToolbar.vue";
 import CustomEditor from "./components/CustomEditor.vue";
+import CustomFormItem from "./components/CustomFormItem.vue";
 
 import { adapterIn, adapterOut } from "./adapter";
 
 import "@logicflow/core/dist/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
 import patternItems from "./assets/panelItems";
-import elementProperties from "./assets/properties";
+import elementProperties, { ElementPropertyAttribute } from "./assets/properties";
 
 import BpmnModdle from "bpmn-moddle";
 import camundaModdle from "camunda-bpmn-moddle/resources/camunda.json";
@@ -27,7 +28,8 @@ const definitions = ref<BPMNModdle.Definitions>();
 const canvasRef = ref<HTMLDivElement>();
 const xmlVisibleRef = ref<boolean>(false);
 const modalVisible = ref<boolean>(false);
-const formData = reactive({});
+const formData = ref<Record<string, any>>();
+const currentElementProperties = ref<ElementPropertyAttribute[]>([]);
 
 const lf = ref<LogicFlow>();
 const graphData = computed(() => lf.value?.getGraphData());
@@ -57,10 +59,16 @@ onMounted(async () => {
   // lf.value.adapterOut = adapterOut;
 
   lf.value.on("element:click", ({ data }) => {
-    console.log("element:click", data, data.properties._bpmnElement);
+    console.log("element:click", data, moddle.getElementDescriptor(data.properties._bpmnElement));
+    formData.value = data.properties._bpmnElement;
+    if (data.type && elementProperties[data.type]?.properties) {
+      currentElementProperties.value = elementProperties[data.type].properties;
+    }
+    if (!modalVisible.value) modalVisible.value = true;
   });
   lf.value.on("blank:click", data => {
     console.log("blank:click", data);
+    if (!modalVisible.value) modalVisible.value = true;
   });
   lf.value.on("node:add,edge:add", data => {
     console.log("node:add,edge:add", data);
@@ -140,7 +148,11 @@ onMounted(async () => {
           :label="item.label"
           :required="item.required"
         >
-          <custom-form-item :item="item" v-model:value="formData[item.key]" />
+          <custom-form-item
+            :item="item"
+            :bpmn-element="formData!._bpmnElement"
+            v-model:value="formData![item.key]"
+          />
         </a-form-item>
         <a-form-item>
           <a-button type="primary">toXML</a-button>
