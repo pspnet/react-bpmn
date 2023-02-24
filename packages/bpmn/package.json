@@ -9,11 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/lang-xml": "^6.0.2",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.9.1",
     "@logicflow/core": "^1.1.31",
     "@logicflow/extension": "^1.1.31",
     "ant-design-vue": "^3.2.15",
     "bpmn-moddle": "^8.0.1",
     "camunda-bpmn-moddle": "^7.0.1",
+    "codemirror": "^6.0.1",
+    "highlight.js": "^11.7.0",
     "vue": "^3.2.45"
   },
   "devDependencies": {
