@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^6.1.0",
     "@codemirror/lang-xml": "^6.0.2",
     "@codemirror/state": "^6.2.0",
     "@codemirror/view": "^6.9.1",

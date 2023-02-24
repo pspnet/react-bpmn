@@ -17,6 +17,8 @@ class DataAdapterOut {
     this.lf = lf;
     this.graphData = lf.getGraphData();
     this.moddle = new BpmnModdle({ camunda: camundaModdle });
+    const x = this.moddle.create("bpmn:Task", { name: 33 });
+    console.log("camundaModdle", camundaModdle, this.moddle.getElementDescriptor(x));
   }
 
   getTypeName(node: NodeConfig): string {

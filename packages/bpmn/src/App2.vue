@@ -1,34 +1,49 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, onMounted } from "vue";
+import LogicFlow from "@logicflow/core";
+import { MiniMap } from "@logicflow/extension";
 
-import { EditorState,Compartment} from "@codemirror/state";
-import { basicSetup } from "codemirror";
-import { EditorView } from "@codemirror/view";
+import CustomToolbar from "./components/CustomToolbar.vue";
+import CustomEditor from "./components/CustomEditor.vue";
 
-import {  xml } from "@codemirror/lang-xml";
-const languageConf = new Compartment();
+import "@logicflow/core/dist/style/index.css";
+import "@logicflow/extension/lib/style/index.css";
 
-const inputRef = ref();
-const value = ref<string>("<span>bbhb</span>");
-onMounted(()=>{
-  let state = EditorState.create({
-    extensions: [
-      basicSetup,
-      languageConf.of(xml()),
+const canvasRef = ref<HTMLDivElement>();
+const xmlVisibleRef = ref<boolean>(false);
 
-    ],
-    // 编辑器中的内容
-    doc: "<span>bbhb</span>",
+onMounted(() => {
+  const lf: LogicFlow = new LogicFlow({
+    container: canvasRef.value!,
+    grid: true,
+    keyboard: {
+      enabled: true,
+    },
+    plugins: [MiniMap],
   });
-let view = new EditorView({
-  state,
-  // 编辑器 挂载的dom
-  parent: inputRef.value,
+  lf.adapterIn = userData => {
+    const nodes = userData.nodess;
+    return { nodes, edges: [] };
+  };
+  lf.render({ nodess: [{ type: "rect", x: 100, y: 100, text: "HelloWorld" }] });
 });
-})
-
-
 </script>
 <template>
-   <div ref="inputRef"></div>
+  <div class="container">
+    <custom-toolbar @xml="xmlVisibleRef = !xmlVisibleRef" />
+    <div v-show="!xmlVisibleRef" class="canvas" ref="canvasRef"></div>
+    <custom-editor v-show="xmlVisibleRef" class="canvas" />
+  </div>
 </template>
+
+<style scoped>
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.container > .canvas {
+  flex: 1;
+}
+</style>
