@@ -1,4 +1,5 @@
 import DataAdapterIn from "./load";
 import DataAdapterOut from "./save";
-
-export { DataAdapterOut, DataAdapterIn };
+import adapterIn from "./adapterIn";
+import adapterOut from "./adapterOut";
+export { adapterIn, adapterOut, DataAdapterOut, DataAdapterIn };
