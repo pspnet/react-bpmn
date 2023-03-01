@@ -17,7 +17,7 @@ export interface ElementAttribute {
 
 import { markRaw } from "vue";
 import { Switch } from "ant-design-vue";
-import CustomDocumentInput from "../components/CustomDocumentInput.vue";
+import CustomDocumentInput from "../components/form/CustomDocumentInput.vue";
 
 const documentation: ElementPropertyAttribute = {
   key: "documentation",

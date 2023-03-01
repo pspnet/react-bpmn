@@ -5,7 +5,17 @@ import {
   CloudUploadOutlined,
   SaveOutlined,
 } from "@ant-design/icons-vue";
+
 const emit = defineEmits(["xml", "upload", "download", "save"]);
+
+import { inject, Ref } from "vue";
+import { lf as lfSymbol } from "../assets/symbol";
+import LogicFlow from "@logicflow/core";
+
+const lf = inject<Ref<LogicFlow>>(lfSymbol);
+const onUpload = () => {
+  console.log("upload", lf?.value.getGraphData());
+};
 </script>
 <template>
   <a-page-header style="border: 1px solid rgb(235, 237, 240)" title="业务流程设计器" sub-title="">
@@ -15,7 +25,7 @@ const emit = defineEmits(["xml", "upload", "download", "save"]);
           <code-outlined />
         </template>
       </a-button>
-      <a-button title="上传" @click="emit('upload')">
+      <a-button title="上传" @click="onUpload">
         <template #icon>
           <cloud-upload-outlined />
         </template>

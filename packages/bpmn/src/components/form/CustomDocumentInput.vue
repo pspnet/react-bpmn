@@ -2,9 +2,9 @@
 import { defineComponent, h, PropType } from "vue";
 
 import { Form, Input } from "ant-design-vue";
-import { ElementPropertyAttribute } from "../assets/properties";
+import { ElementPropertyAttribute } from "../../assets/properties";
 import BpmnModdle, { BaseElement } from "bpmn-moddle";
-import { moddle } from "../adapter";
+import { moddle } from "../../adapter";
 
 export default defineComponent({
   props: {
