@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch, computed, toRaw } from "vue";
+import { ref, onMounted, reactive, watch, computed, toRaw, watchEffect } from "vue";
 import LogicFlow, { GraphModel } from "@logicflow/core";
 import { Menu, DndPanel, SelectionSelect } from "@logicflow/extension";
 import Bpmn from "extension/src/main";
@@ -27,7 +27,7 @@ const canvasRef = ref<HTMLDivElement>();
 const xmlVisibleRef = ref<boolean>(false);
 const modalVisible = ref<boolean>(false);
 const formData = ref<BPMNModdle.BPMNModdle>();
-const currentElementProperties = ref<ElementPropertyAttribute[]>([]);
+const currentElementProperties = ref<ElementPropertyAttribute[] | []>([]);
 
 const lf = ref<LogicFlow>();
 const graphData = computed(() => lf.value?.getGraphData());
@@ -46,19 +46,22 @@ const getCustomComponent = (item: ElementPropertyAttribute) => {
   return { component, options: { ...defaultAttributes, ...options } };
 };
 const toXML = () => {
-  console.log(formData.value);
+  console.log(formData.value, definitions.value);
 };
 
-const triggerXmlView = () => {
-  console.log(definitions.value);
+const triggerXmlView = async () => {
+  //@ts-ignore
+  const text = await moddle.toXML(definitions.value, { format: true });
+  console.log(definitions.value, text);
+  xmlContent.value = text.xml;
   xmlVisibleRef.value = !xmlVisibleRef.value;
 };
 
-watch(formData, value => {});
+const xmlContent = ref<string>();
 
 onMounted(async () => {
   // @ts-ignore
-  const { rootElement } = await moddle.fromXML(xml);
+  const { rootElement, elementsById } = await moddle.fromXML(xml);
   definitions.value = <BPMNModdle.Definitions>rootElement;
 
   lf.value = new LogicFlow({
@@ -75,7 +78,9 @@ onMounted(async () => {
 
   lf.value.on("element:click", ({ data }) => {
     console.log("element:click", data, moddle.getElementDescriptor(data.properties._bpmnElement));
-    formData.value = data.properties._bpmnElement;
+    currentElementProperties.value = [];
+    // formData.value = data.properties._bpmnElement;
+    formData.value = elementsById[data.id];
     if (data.type && elementProperties[data.type]?.properties) {
       currentElementProperties.value = elementProperties[data.type].properties;
     }
@@ -88,7 +93,7 @@ onMounted(async () => {
   lf.value.on("node:add,edge:add", data => {
     console.log("node:add,edge:add", data);
   });
-  console.log(12311, definitions.value);
+  console.log(12311, elementsById);
   const json = {
     nodes: [
       {
@@ -117,64 +122,42 @@ onMounted(async () => {
       },
     ],
   };
-  const graphData = {
-    nodes: [
-      {
-        id: "node_id_1",
-        type: "bpmn:userTask",
-        x: 100,
-        y: 100,
-        text: { x: 100, y: 100, value: "节点1" },
-        properties: {},
-      },
-      {
-        id: "node_id_2",
-        type: "bpmn:startEvent",
-        x: 200,
-        y: 300,
-        text: { x: 300, y: 300, value: "节点2" },
-        properties: {},
-      },
-    ],
-    edges: [
-      {
-        id: "edge_id",
-        type: "polyline",
-        sourceNodeId: "node_id_1",
-        targetNodeId: "node_id_2",
-        text: { x: 139, y: 200, value: "连线" },
-        properties: {},
-      },
-    ],
-  };
   lf.value.render(definitions.value);
 });
 </script>
 <template>
   <div class="container">
     <custom-toolbar @xml="triggerXmlView" />
-    <div v-show="!xmlVisibleRef" class="canvas" ref="canvasRef"></div>
-    <custom-editor v-show="xmlVisibleRef" class="canvas" />
-
-    <a-drawer v-model:visible="modalVisible" :mask="false" title="Basic Drawer" placement="bottom">
-      <a-form layout="inline" :model="formData">
-        <a-form-item
-          v-for="item in currentElementProperties"
-          :label="item.label"
-          :required="item.required"
-        >
-          <component
-            :is="getCustomComponent(item).component"
-            :item="item"
-            :bpmn-element="formData"
-            v-model:value="formData[item.key]"
-          />
-        </a-form-item>
-        <a-form-item>
-          <a-button type="primary" @click="toXML">toXML</a-button>
-        </a-form-item>
-      </a-form>
-    </a-drawer>
+    <custom-editor class="editor" v-show="xmlVisibleRef" :value="xmlContent" />
+    <div class="designer" v-show="!xmlVisibleRef">
+      <div class="canvas" ref="canvasRef"></div>
+      <a-drawer
+        class="drawer"
+        v-model:visible="modalVisible"
+        :mask="false"
+        title="属性"
+        placement="bottom"
+        :get-container="false"
+      >
+        <a-form layout="inline" :model="formData">
+          <a-form-item
+            v-for="item in currentElementProperties"
+            :label="item.label"
+            :required="item.required"
+          >
+            <component
+              :is="getCustomComponent(item).component"
+              :item="item"
+              :bpmn-element="formData"
+              v-model:value="formData[item.key]"
+            />
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" @click="toXML">toXML</a-button>
+          </a-form-item>
+        </a-form>
+      </a-drawer>
+    </div>
   </div>
 </template>
 
@@ -185,7 +168,21 @@ onMounted(async () => {
   flex-direction: column;
 }
 
-.container > .canvas {
+.container > .editor {
   flex: 1;
+}
+
+.container > .designer {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.container > .designer > .canvas {
+  height: 100%;
+}
+
+.container > .designer:deep(.drawer) {
+  position: absolute;
 }
 </style>
