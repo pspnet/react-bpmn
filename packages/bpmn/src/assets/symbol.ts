@@ -1,2 +1,3 @@
 const lf = Symbol();
-export { lf };
+const definitions = Symbol();
+export { lf, definitions };

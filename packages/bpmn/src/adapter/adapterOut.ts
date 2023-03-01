@@ -4,6 +4,8 @@ import { defaultDefinitions } from "./index";
 import { getBpmnId } from "extension/src/util";
 import { moddle } from "./index";
 
+import { ref } from "vue";
+
 function getTypeName(node: NodeConfig): string {
   const name: string = node.type.replace("bpmn:", "").replace("bpmn2:", "");
   return name.charAt(0).toUpperCase() + name.slice(1);
@@ -115,7 +117,7 @@ const adapterOut = (lf: LogicFlow) => {
       if (element) flowElements.push(element);
       if (shape) planeElement.push(shape);
     });
-    return rootElement;
+    return ref(rootElement);
   };
 };
 

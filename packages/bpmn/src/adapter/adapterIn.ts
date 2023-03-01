@@ -1,6 +1,7 @@
 import { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
 import BPMNModdle, { BaseElement } from "bpmn-moddle";
 import properties from "../assets/properties";
+import type { Ref } from "vue";
 
 function getTypeName(element: BaseElement): string {
   const name: string = element.$type.replace("bpmn:", "").replace("bpmn2:", "");
@@ -8,8 +9,8 @@ function getTypeName(element: BaseElement): string {
 }
 
 const adapterIn = () => {
-  return (data: unknown): GraphConfigData => {
-    const { rootElements, diagrams } = data as BPMNModdle.Definitions;
+  return (data: any): GraphConfigData => {
+    const { rootElements, diagrams } = (data as Ref<BPMNModdle.Definitions>).value;
     console.log("rootElements", rootElements);
     const edges: EdgeConfig[] = [];
     const nodes: NodeConfig[] = [];

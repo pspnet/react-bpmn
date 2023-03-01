@@ -8,13 +8,15 @@ import CustomDesigner from "./components/CustomDesigner.vue";
 import "@logicflow/core/dist/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
 
-import { lf as lfSymbol, moddleElementMap as moddleElementMapSymbol } from "./assets/symbol";
+import { lf as lfSymbol, definitions as definitionsSymbol } from "./assets/symbol";
 import LogicFlow from "@logicflow/core";
 import BPMNModdle from "bpmn-moddle";
 
 const lf = ref<LogicFlow>();
+const definitions = ref<BPMNModdle.Definitions>();
 
 provide(lfSymbol, lf);
+provide(definitionsSymbol, definitions);
 
 const xmlVisible = ref<boolean>(false);
 

@@ -1,21 +1,33 @@
 <script setup lang="ts">
-import { inject, onMounted, Ref, ref } from "vue";
+import { inject, onMounted, Ref, ref, toRaw, watch } from "vue";
 import BPMNModdle from "bpmn-moddle";
 import elementProperties, { ElementPropertyAttribute } from "../assets/properties";
 import { Input } from "ant-design-vue";
-import { adapterIn, adapterOut } from "../adapter";
-import LogicFlow from "@logicflow/core";
+import { adapterIn, adapterOut, findElementById, getElementMap } from "../adapter";
+import LogicFlow, { EdgeConfig, NodeConfig } from "@logicflow/core";
 import Bpmn from "extension/src/main";
 import { DndPanel, Menu, SelectionSelect } from "@logicflow/extension";
 import patternItems from "../assets/panelItems";
-import { lf as lfSymbol } from "../assets/symbol";
+import { lf as lfSymbol, definitions as definitionsSymbol } from "../assets/symbol";
 
 const lfRef = inject<Ref<LogicFlow>>(lfSymbol);
+const definitionsRef = inject<Ref<BPMNModdle.Definitions>>(definitionsSymbol);
+
 const canvasRef = ref<HTMLDivElement>();
 
 const modalVisible = ref<boolean>(false);
 const formData = ref<BPMNModdle.BPMNModdle>();
 const currentElementProperties = ref<ElementPropertyAttribute[] | []>([]);
+
+const elementMap = ref<Record<string, any>>({});
+
+watch(
+  formData,
+  value => {
+    console.log("watch formData", value, lfRef?.value.getGraphData());
+  },
+  { deep: true },
+);
 
 const getCustomComponent = (item: ElementPropertyAttribute) => {
   const defaultAttributes = { allowClear: true };
@@ -40,8 +52,10 @@ onMounted(async () => {
   lf.on("element:click", ({ data }) => {
     console.log("element:click", data);
     currentElementProperties.value = [];
-    // formData.value = data.properties._bpmnElement;
-    // formData.value = elementsById[data.id];
+    const target = getElementMap(lfRef?.value.getGraphData().value)[data.id];
+    formData.value = target;
+    console.log("element:click formData", formData.value, target, lf.getDataById(data.id));
+
     if (data.type && elementProperties[data.type]?.properties) {
       currentElementProperties.value = elementProperties[data.type].properties;
     }
@@ -51,8 +65,9 @@ onMounted(async () => {
     console.log("blank:click", data);
     if (!modalVisible.value) modalVisible.value = true;
   });
-  lf.on("node:add,edge:add", data => {
-    console.log("node:add,edge:add", data, lf.getGraphData());
+  lf.on("node:add,edge:add", ({ data }: { data: NodeConfig | EdgeConfig }) => {
+    if (!data.id) return;
+    console.log("node:add,edge:add", data);
   });
   const json = {
     nodes: [
