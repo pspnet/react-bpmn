@@ -3,8 +3,9 @@ import { defineComponent, h, PropType } from "vue";
 
 import { Form, Input } from "ant-design-vue";
 import { ElementPropertyAttribute } from "../../assets/properties";
-import BpmnModdle, { BaseElement } from "bpmn-moddle";
 import { moddle } from "../../adapter";
+
+import type BpmnModdle from "bpmn-moddle";
 
 export default defineComponent({
   props: {
@@ -16,13 +17,9 @@ export default defineComponent({
       type: Object as PropType<ElementPropertyAttribute>,
       required: true,
     },
-    bpmnElement: {
-      type: Object as PropType<BaseElement>,
-    },
   },
   emits: ["update:value"],
-  setup({ item, bpmnElement, value }, { emit }) {
-    console.log("document bpmn", bpmnElement, "item", item, "value", value);
+  setup({ item, value }, { emit }) {
     const formItemContext = Form.useInjectFormItemContext();
     const onChange = (data: any) => {
       const inputValue = (data.target as HTMLInputElement).value;

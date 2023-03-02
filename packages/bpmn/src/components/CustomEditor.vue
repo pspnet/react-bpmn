@@ -9,6 +9,7 @@ import { xml } from "@codemirror/lang-xml";
 import { lf as lfSymbol } from "../assets/symbol";
 import LogicFlow from "@logicflow/core";
 import { moddle } from "../adapter";
+import { CustomLogicFlow } from "../types";
 
 const languageConfig = new Compartment();
 
@@ -16,7 +17,7 @@ const inputRef = ref<HTMLDivElement>();
 
 const editorView = ref<EditorView>();
 
-const lf = inject<Ref<LogicFlow>>(lfSymbol);
+const lf = inject<Ref<CustomLogicFlow>>(lfSymbol);
 
 const props = withDefaults(defineProps<{ visible: boolean }>(), { visible: false });
 
@@ -24,7 +25,7 @@ watch(
   () => props.visible,
   async value => {
     if (!value) return;
-    const moddleElement = lf?.value?.getGraphData();
+    const moddleElement = lf?.value?._adapter?.getDefinitions();
     //@ts-ignore
     const text = await moddle.toXML(moddleElement, { format: true });
     console.log("editor watch", editorView.value?.state, text);

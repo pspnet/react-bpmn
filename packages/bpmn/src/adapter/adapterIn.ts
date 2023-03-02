@@ -1,7 +1,5 @@
 import { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
 import BPMNModdle, { BaseElement } from "bpmn-moddle";
-import properties from "../assets/properties";
-import type { Ref } from "vue";
 
 function getTypeName(element: BaseElement): string {
   const name: string = element.$type.replace("bpmn:", "").replace("bpmn2:", "");
@@ -10,7 +8,7 @@ function getTypeName(element: BaseElement): string {
 
 const adapterIn = () => {
   return (data: any): GraphConfigData => {
-    const { rootElements, diagrams } = (data as Ref<BPMNModdle.Definitions>).value;
+    const { rootElements, diagrams } = data as BPMNModdle.Definitions;
     console.log("rootElements", rootElements);
     const edges: EdgeConfig[] = [];
     const nodes: NodeConfig[] = [];
@@ -21,10 +19,10 @@ const adapterIn = () => {
       // @ts-ignore
       const { flowElements } = element;
       if (!flowElements?.length) return { nodes, edges };
-      const nodeElements = flowElements.filter(
-        (item: BaseElement) =>
-          (properties[item.$type] || properties[`bpmn:${getTypeName(item)}`])._type === "node",
-      );
+      const nodeElements = flowElements.filter((item: BaseElement) => {
+        //TODO:
+        return !["bpmn:SequenceFlow"].includes(item.$type);
+      });
       for (let nodeElement of nodeElements) {
         // const descriptor = this.moddle.getElementDescriptor(nodeElement);
         const { $type, id, name, ...rest } = nodeElement;
@@ -32,7 +30,7 @@ const adapterIn = () => {
           id,
           type: `bpmn:${getTypeName(nodeElement)}`,
           text: name,
-          properties: { ...rest, _bpmnElement: nodeElement },
+          properties: rest,
           x: 0,
           y: 0,
         };
@@ -58,7 +56,7 @@ const adapterIn = () => {
               text: { value: name, x: bounds.x, y: bounds.y },
               sourceNodeId,
               targetNodeId,
-              properties: { _bpmnElement: edgeElement },
+              properties: {},
             };
             edges.push(edge);
           }

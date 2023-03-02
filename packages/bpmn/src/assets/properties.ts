@@ -9,14 +9,13 @@ export interface ElementPropertyAttribute {
 
 export interface ElementAttribute {
   [key: string]: {
-    _type?: "node" | "edge";
     title?: string;
     properties: ElementPropertyAttribute[];
   };
 }
 
 import { markRaw } from "vue";
-import { Switch } from "ant-design-vue";
+import { Input, Switch } from "ant-design-vue";
 import CustomDocumentInput from "../components/form/CustomDocumentInput.vue";
 
 const documentation: ElementPropertyAttribute = {
@@ -47,7 +46,6 @@ const elements: ElementAttribute = {
     ],
   },
   "bpmn:startEvent": {
-    _type: "node",
     title: "开始",
     properties: [
       id,
@@ -88,11 +86,10 @@ const elements: ElementAttribute = {
   },
 
   "bpmn:userTask": {
-    _type: "node",
     title: "用户任务",
     properties: [
       id,
-      name,
+      { ...name, component: [markRaw(Input), { required: true }] },
       { key: "assignee", label: "受理人" },
       { key: "candidateUsers", label: "候选用户" },
       { key: "candidateGroups", label: "候选组" },
