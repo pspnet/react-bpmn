@@ -11,7 +11,7 @@ import patternItems from "../assets/panelItems";
 import { lf as lfSymbol } from "../assets/symbol";
 import { CustomLogicFlow } from "../types";
 
-const lfRef = inject<Ref<CustomLogicFlow>>(lfSymbol);
+const pinia = inject<CustomLogicFlow>(lfSymbol, { lf: undefined });
 
 const canvasRef = ref<HTMLDivElement>();
 
@@ -22,13 +22,8 @@ const currentElementProperties = ref<ElementPropertyAttribute[] | []>([]);
 watch(
   formData,
   value => {
-    lfRef?.value.render(lfRef?.value._adapter?.getDefinitions());
-    console.log(
-      "watch formData",
-      value,
-      lfRef?.value._adapter?.getDefinitions(),
-      lfRef?.value.getGraphRawData(),
-    );
+    console.log(pinia);
+    pinia.lf?.render(pinia.bpmnElement);
   },
   { deep: true },
 );
@@ -41,7 +36,7 @@ const getCustomComponent = (item: ElementPropertyAttribute) => {
 };
 
 onMounted(async () => {
-  const lf: CustomLogicFlow = new LogicFlow({
+  const lf: LogicFlow = new LogicFlow({
     container: canvasRef.value!,
     grid: true,
     keyboard: {
@@ -50,7 +45,7 @@ onMounted(async () => {
     plugins: [Bpmn, Menu, DndPanel, SelectionSelect],
   });
   lf.extension.dndPanel.setPatternItems(patternItems);
-  const customAdapter = new CustomAdapter(lf);
+  const customAdapter = new CustomAdapter(lf, pinia.bpmnElement);
   lf.adapterIn = customAdapter.input();
   lf.adapterOut = customAdapter.output();
   lf._adapter = customAdapter;
@@ -60,14 +55,16 @@ onMounted(async () => {
     formData.value = customAdapter.getElementById(data.id);
     console.log("element:click formData", formData.value, data);
     if (!formData.value) return;
-
-    if (data.type && elementProperties[data.type]?.properties) {
-      currentElementProperties.value = elementProperties[data.type].properties;
+    const type = ["polyline"].includes(data.type) ? "bpmn:sequenceFlow" : data.type;
+    if (type && elementProperties[type]?.properties) {
+      currentElementProperties.value = elementProperties[type].properties;
     }
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.on("blank:click", data => {
     console.log("blank:click", data);
+    currentElementProperties.value = elementProperties["bpmn:process"].properties || [];
+
     formData.value = customAdapter.getProcess();
     if (!modalVisible.value) modalVisible.value = true;
   });
@@ -105,7 +102,7 @@ onMounted(async () => {
   };
   const definitions = lf.getGraphData();
   lf.render(definitions);
-  lfRef!.value = lf;
+  pinia.lf = lf;
 });
 </script>
 <template>

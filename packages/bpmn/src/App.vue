@@ -10,10 +10,9 @@ import "@logicflow/extension/lib/style/index.css";
 
 import { lf as lfSymbol } from "./assets/symbol";
 import { CustomLogicFlow } from "./types";
+import { defaultDefinitions } from "./adapter";
 
-const lf = ref<CustomLogicFlow>();
-
-provide(lfSymbol, lf);
+provide<CustomLogicFlow>(lfSymbol, { lf: undefined, bpmnElement: defaultDefinitions() });
 
 const xmlVisible = ref<boolean>(false);
 

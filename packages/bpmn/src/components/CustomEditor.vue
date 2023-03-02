@@ -17,7 +17,7 @@ const inputRef = ref<HTMLDivElement>();
 
 const editorView = ref<EditorView>();
 
-const lf = inject<Ref<CustomLogicFlow>>(lfSymbol);
+const pinia = inject<CustomLogicFlow>(lfSymbol);
 
 const props = withDefaults(defineProps<{ visible: boolean }>(), { visible: false });
 
@@ -25,7 +25,7 @@ watch(
   () => props.visible,
   async value => {
     if (!value) return;
-    const moddleElement = lf?.value?._adapter?.getDefinitions();
+    const moddleElement = pinia?.bpmnElement;
     //@ts-ignore
     const text = await moddle.toXML(moddleElement, { format: true });
     console.log("editor watch", editorView.value?.state, text);
@@ -44,7 +44,6 @@ onMounted(async () => {
         const text = update.state.doc.toString();
         const moddleElement = await moddle.fromXML(text);
         console.log("editor", text, moddleElement);
-        // lf?.value.render(moddleElement);
       }),
     ],
     doc: "",

@@ -66,7 +66,7 @@ const elements: ElementAttribute = {
         label: "可执行文件",
         value: true,
         type: "Boolean",
-        component: [markRaw(Switch)],
+        component: [markRaw(Switch),{modelValue:"checked"}],
       },
       {
         key: "versionTag",

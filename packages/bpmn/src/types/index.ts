@@ -1,8 +1,10 @@
 import type { CustomAdapter } from "../adapter";
 import type LogicFlow from "@logicflow/core";
-import { Edge, Shape } from "bpmn-moddle";
+import type { Definitions, Edge, Shape } from "bpmn-moddle";
 
-export interface CustomLogicFlow extends LogicFlow {
+export interface CustomLogicFlow {
+  lf: LogicFlow | undefined;
+  bpmnElement?: Definitions;
   _adapter?: CustomAdapter;
 }
 

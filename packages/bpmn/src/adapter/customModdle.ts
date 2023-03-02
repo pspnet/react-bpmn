@@ -1,8 +1,7 @@
 import LogicFlow from "@logicflow/core";
-import { getBpmnId } from "@logicflow/extension/es/bpmn/getBpmnId";
-import { moddle } from "./index";
+import { defaultDefinitions, moddle } from "./index";
 
-import { BPMNModdle, Definitions, FlowElement, Process, Edge, Diagram, Shape } from "bpmn-moddle";
+import { BPMNModdle, Definitions, FlowElement, Process } from "bpmn-moddle";
 import { CustomPlanElement } from "../types";
 
 class CustomModdle {
@@ -10,10 +9,10 @@ class CustomModdle {
   moddle: BPMNModdle;
   private definitions: Definitions;
 
-  constructor(lf: LogicFlow) {
+  constructor(lf: LogicFlow, definitions?: Definitions) {
     this.lf = lf;
     this.moddle = moddle;
-    this.definitions = this.getDefaultDefinitions();
+    this.definitions = definitions || defaultDefinitions();
   }
 
   getProcess(): Process {
@@ -82,25 +81,6 @@ class CustomModdle {
 
   setDefinitions(definitions: Definitions) {
     this.definitions = definitions;
-  }
-
-  private getDefaultDefinitions() {
-    const process: Process = this.moddle.create("bpmn:Process", {
-      id: `Process_${getBpmnId()}`,
-      isExecutable: true,
-    });
-    const diagram: Diagram = this.moddle.create("bpmndi:BPMNDiagram", {
-      id: `BPMNDiagram_${getBpmnId()}`,
-      plane: this.moddle.create("bpmndi:BPMNPlane", { id: "BPMNPlane_1", bpmnElement: process }),
-    });
-    return this.moddle.create("bpmn:Definitions", {
-      id: `Definitions_${getBpmnId()}`,
-      targetNamespace: "http://bpmn.io/schema/bpmn",
-      exporter: "Camunda Modeler",
-      exporterVersion: "4.11.1",
-      diagrams: [diagram],
-      rootElements: [process],
-    });
   }
 }
 
