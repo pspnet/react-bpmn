@@ -56,6 +56,7 @@ onMounted(async () => {
     console.log("element:click formData", formData.value, data);
     if (!formData.value) return;
     const type = ["polyline"].includes(data.type) ? "bpmn:sequenceFlow" : data.type;
+    console.log(1111, type, elementProperties[type]?.properties);
     if (type && elementProperties[type]?.properties) {
       currentElementProperties.value = elementProperties[type].properties;
     }
@@ -70,7 +71,7 @@ onMounted(async () => {
   });
   lf.on("node:add,edge:add", ({ data }: { data: NodeConfig | EdgeConfig }) => {
     if (!data.id) return;
-    lf.getGraphData();
+    pinia.bpmnElement = lf.getGraphData();
   });
   const json = {
     nodes: [
@@ -100,8 +101,7 @@ onMounted(async () => {
       },
     ],
   };
-  const definitions = lf.getGraphData();
-  lf.render(definitions);
+  lf.render(pinia.bpmnElement);
   pinia.lf = lf;
 });
 </script>

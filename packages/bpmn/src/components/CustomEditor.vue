@@ -7,9 +7,9 @@ import { EditorView } from "@codemirror/view";
 
 import { xml } from "@codemirror/lang-xml";
 import { lf as lfSymbol } from "../assets/symbol";
-import LogicFlow from "@logicflow/core";
 import { moddle } from "../adapter";
 import { CustomLogicFlow } from "../types";
+import BPMNModdle from "bpmn-moddle";
 
 const languageConfig = new Compartment();
 
@@ -24,7 +24,10 @@ const props = withDefaults(defineProps<{ visible: boolean }>(), { visible: false
 watch(
   () => props.visible,
   async value => {
-    if (!value) return;
+    if (!value) {
+      if (pinia) pinia.lf?.render(pinia.bpmnElement);
+      return;
+    }
     const moddleElement = pinia?.bpmnElement;
     //@ts-ignore
     const text = await moddle.toXML(moddleElement, { format: true });
@@ -42,8 +45,9 @@ onMounted(async () => {
       languageConfig.of(xml()),
       EditorView.updateListener.of(async update => {
         const text = update.state.doc.toString();
-        const moddleElement = await moddle.fromXML(text);
-        console.log("editor", text, moddleElement);
+        //@ts-ignore
+        const { rootElement } = await moddle.fromXML(text);
+        if (pinia) pinia.bpmnElement = rootElement;
       }),
     ],
     doc: "",
