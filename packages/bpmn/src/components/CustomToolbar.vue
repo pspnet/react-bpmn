@@ -8,13 +8,8 @@ import {
 
 const emit = defineEmits(["xml", "upload", "download", "save"]);
 
-import { inject, Ref } from "vue";
-import { lf as lfSymbol } from "../assets/symbol";
-import LogicFlow from "@logicflow/core";
-
-const lf = inject<Ref<LogicFlow>>(lfSymbol);
 const onUpload = () => {
-  console.log("upload", lf?.value.getGraphData());
+  console.log("upload");
 };
 </script>
 <template>

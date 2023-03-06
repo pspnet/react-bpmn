@@ -1,29 +1,48 @@
 <script setup lang="ts">
-import { inject, isRef, onMounted, Ref, ref, toRaw, watch } from "vue";
+import { h, inject, onMounted, ref, watch } from "vue";
 import BPMNModdle from "bpmn-moddle";
 import elementProperties, { ElementPropertyAttribute } from "../assets/properties";
-import { Input } from "ant-design-vue";
-import { CustomAdapter } from "../adapter";
 import LogicFlow, { EdgeConfig, NodeConfig } from "@logicflow/core";
 import Bpmn from "extension/src/main";
 import { DndPanel, Menu, SelectionSelect } from "@logicflow/extension";
 import patternItems from "../assets/panelItems";
-import { lf as lfSymbol } from "../assets/symbol";
-import { CustomLogicFlow } from "../types";
+import { props as propsSymbol } from "../assets/symbol";
+import { CustomProps } from "../types";
+import { customModdle } from "../adapter";
 
-const pinia = inject<CustomLogicFlow>(lfSymbol, { lf: undefined });
+import CustomFormItem from "./form/CustomFormItem.vue";
+import { Input } from "ant-design-vue";
+
+const pinia = inject<CustomProps>(propsSymbol);
 
 const canvasRef = ref<HTMLDivElement>();
-
 const modalVisible = ref<boolean>(false);
 const formData = ref<BPMNModdle.BaseElement>();
 const currentElementProperties = ref<ElementPropertyAttribute[] | []>([]);
+const currentElementData = ref<NodeConfig | EdgeConfig | undefined>();
+
+watch(
+  () => [pinia!.bpmnElement.value, currentElementData.value],
+  ([bpmnElement, selectedData]) => {
+    //TODO: change formData
+    console.log("watch changedForm data", bpmnElement, selectedData);
+    if (!selectedData) {
+      formData.value = customModdle(pinia?.bpmnElement.value).getProcess();
+      return;
+    }
+    formData.value = customModdle(pinia?.bpmnElement.value).getElementById(
+      selectedData!.id as string,
+    );
+  },
+  { immediate: true },
+);
 
 watch(
   formData,
-  value => {
-    console.log(pinia);
-    pinia.lf?.render(pinia.bpmnElement);
+  (value: BPMNModdle.BaseElement | undefined) => {
+    console.log("watch formdata", value, pinia?.graphConfig.value);
+    if (!value?.id) return;
+    customModdle(pinia?.bpmnElement.value).setElement(value.id, value);
   },
   { deep: true },
 );
@@ -36,7 +55,7 @@ const getCustomComponent = (item: ElementPropertyAttribute) => {
 };
 
 onMounted(async () => {
-  const lf: LogicFlow = new LogicFlow({
+  const lf = new LogicFlow({
     container: canvasRef.value!,
     grid: true,
     keyboard: {
@@ -45,64 +64,36 @@ onMounted(async () => {
     plugins: [Bpmn, Menu, DndPanel, SelectionSelect],
   });
   lf.extension.dndPanel.setPatternItems(patternItems);
-  const customAdapter = new CustomAdapter(lf, pinia.bpmnElement);
-  lf.adapterIn = customAdapter.input();
-  lf.adapterOut = customAdapter.output();
-  lf._adapter = customAdapter;
 
   lf.on("element:click", ({ data }) => {
     currentElementProperties.value = [];
-    formData.value = customAdapter.getElementById(data.id);
-    console.log("element:click formData", formData.value, data);
-    if (!formData.value) return;
+    currentElementData.value = data;
     const type = ["polyline"].includes(data.type) ? "bpmn:sequenceFlow" : data.type;
-    console.log(1111, type, elementProperties[type]?.properties);
     if (type && elementProperties[type]?.properties) {
       currentElementProperties.value = elementProperties[type].properties;
     }
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.on("blank:click", data => {
-    console.log("blank:click", data);
     currentElementProperties.value = elementProperties["bpmn:process"].properties || [];
-
-    formData.value = customAdapter.getProcess();
+    currentElementData.value = undefined;
+    console.log("blank:click", data, formData.value);
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.on("node:add,edge:add", ({ data }: { data: NodeConfig | EdgeConfig }) => {
     if (!data.id) return;
-    pinia.bpmnElement = lf.getGraphData();
+    pinia!.graphConfig.value = lf.getGraphData();
+    console.log("node:add,edge:add", pinia?.graphConfig.value, lf.getGraphData());
   });
-  const json = {
-    nodes: [
-      {
-        id: "StartEvent_1sc8phk",
-        type: "bpmn:startEvent",
-        text: "节点1",
-        properties: {},
-        x: 160,
-        y: 100,
-      },
-      {
-        id: "UserTask_0to9qv1",
-        type: "bpmn:userTask",
-        text: "节点2",
-        properties: {},
-        x: 360,
-        y: 200,
-      },
-    ],
-    edges: [
-      {
-        id: "FLOW_3aed1n8",
-        type: "polyline",
-        sourceNodeId: "StartEvent_1sc8phk",
-        targetNodeId: "UserTask_0to9qv1",
-      },
-    ],
-  };
-  lf.render(pinia.bpmnElement);
-  pinia.lf = lf;
+  lf.on("node:delete,edge:delete", data => {
+    if (!data.id) return;
+    //TODO:
+    pinia!.graphConfig.value = lf.getGraphData();
+    console.log("node:delete,edge:delete", data, lf.getGraphData(), pinia?.graphConfig.value);
+  });
+  if (!pinia?.graphConfig.value) pinia!.graphConfig.value = { nodes: [], edges: [] };
+  lf.render(pinia!.graphConfig.value);
+  pinia!.lf.value = lf;
 });
 </script>
 <template>

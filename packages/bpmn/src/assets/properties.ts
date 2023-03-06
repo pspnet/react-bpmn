@@ -1,3 +1,5 @@
+import { OptionListProps } from "ant-design-vue/es/vc-select/OptionList";
+
 export interface ElementPropertyAttribute {
   key: string;
   label: string;
@@ -15,8 +17,10 @@ export interface ElementAttribute {
 }
 
 import { markRaw } from "vue";
-import { Input, Switch } from "ant-design-vue";
+import { Input, Select, Switch } from "ant-design-vue";
 import CustomDocumentInput from "../components/form/CustomDocumentInput.vue";
+import { DefaultOptionType } from "ant-design-vue/lib/vc-select/Select";
+import CustomSwitch from "../components/form/CustomSwitch.vue";
 
 const documentation: ElementPropertyAttribute = {
   key: "documentation",
@@ -24,6 +28,11 @@ const documentation: ElementPropertyAttribute = {
   type: "Documentation",
   component: [markRaw(CustomDocumentInput)],
 };
+
+const options: DefaultOptionType[] = [
+  { label: "是", value: "true" },
+  { label: "否", value: "false" },
+];
 
 const id: ElementPropertyAttribute = {
   key: "id",
@@ -64,9 +73,8 @@ const elements: ElementAttribute = {
       {
         key: "isExecutable",
         label: "可执行文件",
-        value: true,
         type: "Boolean",
-        component: [markRaw(Switch),{modelValue:"checked"}],
+        component: [markRaw(CustomSwitch)],
       },
       {
         key: "versionTag",

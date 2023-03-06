@@ -1,7 +1,7 @@
 import adapterIn from "./adapterIn";
 import adapterOut from "./adapterOut";
-import CustomModdle from "./customModdle";
-import LogicFlow from "@logicflow/core";
+import customModdle from "./customModdle";
+
 import BpmnModdle, { Definitions, Diagram, Process } from "bpmn-moddle";
 
 import camundaModdle from "camunda-bpmn-moddle/resources/camunda.json";
@@ -9,7 +9,7 @@ import { getBpmnId } from "@logicflow/extension/es/bpmn/getBpmnId";
 
 const moddle = new BpmnModdle({ camunda: camundaModdle });
 
-function defaultDefinitions() {
+function defaultDefinitions(): Definitions {
   const process: Process = moddle.create("bpmn:Process", {
     id: `Process_${getBpmnId()}`,
     isExecutable: true,
@@ -23,23 +23,11 @@ function defaultDefinitions() {
     targetNamespace: "http://bpmn.io/schema/bpmn",
     exporter: "Camunda Modeler",
     exporterVersion: "4.11.1",
+    isExecutable: true,
     diagrams: [diagram],
     rootElements: [process],
+
   });
 }
 
-class CustomAdapter extends CustomModdle {
-  constructor(lf: LogicFlow, definitions?: Definitions) {
-    super(lf, definitions);
-  }
-
-  input() {
-    return adapterIn();
-  }
-
-  output() {
-    return adapterOut(this);
-  }
-}
-
-export { moddle, defaultDefinitions, CustomAdapter };
+export { moddle, defaultDefinitions, adapterOut, adapterIn, customModdle };

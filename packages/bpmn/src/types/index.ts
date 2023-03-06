@@ -1,11 +1,18 @@
-import type { CustomAdapter } from "../adapter";
-import type LogicFlow from "@logicflow/core";
+import { Ref } from "vue";
 import type { Definitions, Edge, Shape } from "bpmn-moddle";
+import { GraphConfigData } from "@logicflow/core/types/type";
+import LogicFlow from "@logicflow/core";
 
-export interface CustomLogicFlow {
-  lf: LogicFlow | undefined;
-  bpmnElement?: Definitions;
-  _adapter?: CustomAdapter;
+export interface DefinitionsXml {
+  xml: string;
+  _version?: number;
+}
+
+export interface CustomProps {
+  lf: Ref<LogicFlow | undefined>;
+  graphConfig: Ref<GraphConfigData | undefined>;
+  bpmnElement: Ref<Definitions>;
+  bpmnXml: Ref<DefinitionsXml>;
 }
 
 export interface CustomEdge extends Edge {

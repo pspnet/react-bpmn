@@ -1,16 +1,16 @@
 import LogicFlow, { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
-import BPMNModdle, { BaseElement, FlowElement, Process } from "bpmn-moddle";
+import { BaseElement, Definitions, FlowElement } from "bpmn-moddle";
 import { getBpmnId } from "extension/src/util";
 
-import CustomModdle from "./customModdle";
-import { CustomPlanElement, CustomShape } from "../types";
+import { moddle, customModdle } from "./index";
+import { CustomShape } from "../types";
 
 function getTypeName(node: NodeConfig): string {
   const name: string = node.type.replace("bpmn:", "").replace("bpmn2:", "");
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-function createElement(nodeConfig: NodeConfig, lf: LogicFlow, moddle: BPMNModdle.BPMNModdle) {
+function createElement(nodeConfig: NodeConfig, lf: LogicFlow) {
   const typeName = getTypeName(nodeConfig);
   const id = nodeConfig.id || `${typeName}_${getBpmnId()}`;
   const name = typeof nodeConfig.text === "string" ? nodeConfig.text : nodeConfig.text?.value;
@@ -36,12 +36,7 @@ function createElement(nodeConfig: NodeConfig, lf: LogicFlow, moddle: BPMNModdle
   return { element, shape };
 }
 
-function createEdge(
-  edgeConfig: EdgeConfig,
-  flowElements: BaseElement[],
-  lf: LogicFlow,
-  moddle: BPMNModdle.BPMNModdle,
-) {
+function createEdge(edgeConfig: EdgeConfig, flowElements: BaseElement[], lf: LogicFlow) {
   const { sourceNodeId, targetNodeId, text } = edgeConfig;
   const id = edgeConfig.id || `FLOW_${getBpmnId()}`;
   const name: string =
@@ -84,26 +79,22 @@ function createEdge(
   return { element, shape };
 }
 
-const adapterOut = (customModdle: CustomModdle) => {
-  const lf = customModdle.lf;
-  const moddle = customModdle.moddle;
-
-  return (data: GraphConfigData): BPMNModdle.Definitions => {
+const adapterOut = (lf: LogicFlow, definitions: Definitions) => {
+  return (data: GraphConfigData): Definitions => {
     const { nodes, edges } = data;
-    const definitions = customModdle.getDefinitions();
-    const flowElements = customModdle.getFlowElements();
+    const customDefinitions = customModdle(definitions);
+    const flowElements = customDefinitions.getFlowElements();
     nodes.forEach(node => {
-      const { element, shape } = createElement(node, lf, moddle);
-      if (element) customModdle.setFlowElement(element.id, <FlowElement>element);
-      if (shape) customModdle.setEdgeElement((<CustomShape>shape).id, <CustomShape>shape);
+      const { element, shape } = createElement(node, lf);
+      if (element) customDefinitions.setFlowElement(element.id, <FlowElement>element);
+      if (shape) customDefinitions.setEdgeElement((<CustomShape>shape).id, <CustomShape>shape);
     });
     edges.forEach(edge => {
-      const { element, shape } = createEdge(edge, flowElements, lf, moddle);
-      if (element) customModdle.setFlowElement(element.id, <FlowElement>element);
-      if (shape) customModdle.setEdgeElement((<CustomShape>shape).id, <CustomShape>shape);
+      const { element, shape } = createEdge(edge, flowElements, lf);
+      if (element) customDefinitions.setFlowElement(element.id, <FlowElement>element);
+      if (shape) customDefinitions.setEdgeElement((<CustomShape>shape).id, <CustomShape>shape);
     });
     return definitions;
   };
 };
-
 export default adapterOut;

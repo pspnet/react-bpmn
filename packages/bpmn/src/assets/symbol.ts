@@ -1,3 +1,3 @@
 const lf = Symbol();
-const definitions = Symbol();
-export { lf, definitions };
+const props = Symbol();
+export { lf, props };
