@@ -7,7 +7,7 @@ import { ElementPropertyAttribute } from "../../assets/properties";
 export default defineComponent({
   props: {
     value: {
-      type: null,
+      type: Boolean,
       required: true,
     },
     item: {
@@ -16,7 +16,7 @@ export default defineComponent({
     },
   },
   emits: ["update:value"],
-  setup({ value, item }, { emit }) {
+  setup({ value }, { emit }) {
     const formItemContext = Form.useInjectFormItemContext();
     const checkedRef = ref<boolean>(Boolean(value));
     const onChange = (checked: boolean | string | number) => {
