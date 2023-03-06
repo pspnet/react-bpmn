@@ -21,12 +21,20 @@ import { Input, Select, Switch } from "ant-design-vue";
 import CustomDocumentInput from "../components/form/CustomDocumentInput.vue";
 import { DefaultOptionType } from "ant-design-vue/lib/vc-select/Select";
 import CustomSwitch from "../components/form/CustomSwitch.vue";
+import CustomPropertyItem from "../components/form/CustomPropertyItem.vue";
 
 const documentation: ElementPropertyAttribute = {
   key: "documentation",
   label: "文档",
-  type: "Documentation",
+  type: "bpmn:Documentation",
   component: [markRaw(CustomDocumentInput)],
+};
+
+const extensionElements: ElementPropertyAttribute = {
+  key: "extensionElements",
+  label: "自定义属性",
+  type: "bpmn:ExtensionElements",
+  component: [markRaw(CustomPropertyItem)],
 };
 
 const options: DefaultOptionType[] = [
@@ -103,6 +111,7 @@ const elements: ElementAttribute = {
       { key: "candidateGroups", label: "候选组" },
       { key: "priority", label: "优先级" },
       documentation,
+      extensionElements,
     ],
   },
 

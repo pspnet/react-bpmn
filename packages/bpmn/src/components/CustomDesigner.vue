@@ -12,6 +12,7 @@ import { customModdle } from "../adapter";
 
 import CustomFormItem from "./form/CustomFormItem.vue";
 import { Input } from "ant-design-vue";
+import CustomPropertyItem from "./form/CustomPropertyItem.vue";
 
 const pinia = inject<CustomProps>(propsSymbol);
 
@@ -123,8 +124,10 @@ onMounted(async () => {
               />
             </a-form-item>
           </a-tab-pane>
-          <a-tab-pane tab="扩展"> </a-tab-pane>
-          <a-tab-pane tab="事件"> </a-tab-pane>
+          <a-tab-pane key="2" tab="扩展">
+            <custom-property-item></custom-property-item>
+          </a-tab-pane>
+          <a-tab-pane key="3" tab="事件"></a-tab-pane>
         </a-tabs>
       </a-form>
     </a-drawer>
@@ -133,5 +136,9 @@ onMounted(async () => {
 <style scoped>
 .canvas {
   height: 100%;
+}
+
+.ant-tabs {
+  width: 100%;
 }
 </style>
