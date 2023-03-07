@@ -4,18 +4,32 @@ import { Form } from "ant-design-vue";
 import { PlusOutlined, MinusOutlined, CheckOutlined } from "@ant-design/icons-vue";
 import { EntryAttribute } from "../../assets/properties";
 import { moddle } from "../../adapter";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
-const props = withDefaults(defineProps<{ value: ExtensionElements; entry: EntryAttribute }>(), {
+interface ExtensionElementProps {
+  value: any;
+  entry: EntryAttribute;
+}
+
+interface KeyValueProps {
+  name: string;
+  value: string;
+}
+
+const props = withDefaults(defineProps<ExtensionElementProps>(), {
   value: moddle.create("bpmn:ExtensionElements", {
     values: [moddle.create("camunda:Properties", { values: [] })],
     valueRef: undefined,
   }),
 });
 console.log(123, props.value.values[0]);
-const values: BaseElement[] = computed(() => props.value.values[0].values);
+const values = computed(() => props.value.values[0].values);
 
 const emit = defineEmits<{ (event: "update:value", bpmnElement: ExtensionElements): void }>();
+
+const keyValueList = ref<KeyValueProps[]>([{ name: "", value: "" }]);
+
+const computedKeys = computed(() => keyValueList.value.map(item => item.name));
 
 const formItemContext = Form.useInjectFormItemContext();
 const onChange = (data: ExtensionElements) => {
@@ -23,34 +37,62 @@ const onChange = (data: ExtensionElements) => {
   formItemContext.onFieldChange();
 };
 
-const onSave = () => {
+const onSave = (data: KeyValueProps[]) => {
+
+  const computedValues = data.filter(item=>item.name.length && item.value.length);
+  console.log("watch66666", computedValues);
   //TODO: validate form data: name,value not null; name is unique;
-  const property = moddle.create("camunda:Property", {
-    name: keyValue.value,
-    value: valueValue.value,
-  });
-  values.value.push(property);
+  if(computedValues.length)
+  values.value.splice(0,values.value.length,...computedValues.map(item=>moddle.create("camunda:Property", item)));
+  else
+    values.value.splice(0,values.value.length);
   onChange(props.value);
 };
-const removeRow = () => {};
-const addRow = () => {};
+const removeRow = (index: number) => {
+  if( keyValueList.value.length>1)
+  keyValueList.value.splice(index, 1);
+};
+const addRow = () => {
+  keyValueList.value.push({ name: "", value: "" });
+};
 
-const keyValue = ref<string>();
-const valueValue = ref<string>();
+const onKeyChange = (event: InputEvent, item: KeyValueProps, index: number) => {
+  item.name = (event.target as HTMLInputElement).value.trim();
+  if (!item.value.trim().length) return;
+  keyValueList.value.splice(index, 1, item);
+};
+
+const onValueChange = (event: InputEvent, item: KeyValueProps, index: number) => {
+  item.value = (event.target as HTMLInputElement).value.trim();
+  if (!item.name.trim().length) return;
+  keyValueList.value.splice(index, 1, item);
+};
+
+watch(keyValueList, values => {
+
+  onSave(values)
+
+},{deep:true});
 </script>
 <template>
-  <a-space class="row">
+  <div>
+  <a-space class="row" v-for="(item, index) in keyValueList">
     <a-input-group compact>
-      <a-input v-model:value="keyValue" allow-clear style="width: 50%" />
-      <a-input v-model:value="valueValue" allow-clear style="width: 50%" />
+      <a-input
+        :value="item.name"
+        allow-clear
+        @change="onKeyChange($event, item, index)"
+        style="width: 50%"
+      />
+      <a-input
+        :value="item.value"
+        @change="onValueChange($event, item, index)"
+        allow-clear
+        style="width: 50%"
+      />
     </a-input-group>
     <a-space>
-      <a-button type="link" @click="onSave">
-        <template #icon>
-          <check-outlined />
-        </template>
-      </a-button>
-      <a-button type="link" @click="removeRow">
+      <a-button type="link" @click="removeRow(index)">
         <template #icon>
           <minus-outlined />
         </template>
@@ -62,6 +104,7 @@ const valueValue = ref<string>();
       </a-button>
     </a-space>
   </a-space>
+  </div>
 </template>
 <style scoped>
 .row {
