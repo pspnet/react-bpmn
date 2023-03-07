@@ -18,15 +18,14 @@ function defaultDefinitions(): Definitions {
     id: `BPMNDiagram_${getBpmnId()}`,
     plane: moddle.create("bpmndi:BPMNPlane", { id: "BPMNPlane_1", bpmnElement: process }),
   });
+  console.log(moddle.getTypeDescriptor("bpmn:FlowNode"));
   return moddle.create("bpmn:Definitions", {
     id: `Definitions_${getBpmnId()}`,
     targetNamespace: "http://bpmn.io/schema/bpmn",
     exporter: "Camunda Modeler",
     exporterVersion: "4.11.1",
-    isExecutable: true,
     diagrams: [diagram],
     rootElements: [process],
-
   });
 }
 

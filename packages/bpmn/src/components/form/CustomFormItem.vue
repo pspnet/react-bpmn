@@ -2,7 +2,7 @@
 import type { PropType } from "vue";
 import { defineComponent, h } from "vue";
 import { Form, Input } from "ant-design-vue";
-import { ElementPropertyAttribute } from "../../assets/properties";
+import { EntryAttribute } from "../../assets/properties";
 
 const defaultAttributes = { allowClear: true };
 const defaultFormItem = [Input];
@@ -12,13 +12,13 @@ export default defineComponent({
       type: null,
       required: true,
     },
-    item: {
-      type: Object as PropType<ElementPropertyAttribute>,
+    entry: {
+      type: Object as PropType<EntryAttribute>,
       required: true,
     },
   },
   emits: ["update:value"],
-  setup({ value, item }, { emit }) {
+  setup({ value, entry }, { emit }) {
     const formItemContext = Form.useInjectFormItemContext();
     const onChange = (data: any) => {
       let computedData = data;
@@ -27,7 +27,7 @@ export default defineComponent({
       emit("update:value", computedData);
       formItemContext.onFieldChange();
     };
-    const [component, options] = item.component || defaultFormItem;
+    const [component, options] = entry.component || defaultFormItem;
     return () =>
       h(
         component,

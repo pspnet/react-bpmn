@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, inject, onMounted, ref, watch } from "vue";
 import BPMNModdle from "bpmn-moddle";
-import elementProperties, { ElementPropertyAttribute } from "../assets/properties";
+import { ElementAttribute, elementsByType, EntryAttribute } from "../assets/properties";
 import LogicFlow, { EdgeConfig, NodeConfig } from "@logicflow/core";
 import Bpmn from "extension/src/main";
 import { DndPanel, Menu, SelectionSelect } from "@logicflow/extension";
@@ -10,16 +10,15 @@ import { props as propsSymbol } from "../assets/symbol";
 import { CustomProps } from "../types";
 import { customModdle } from "../adapter";
 
-import CustomFormItem from "./form/CustomFormItem.vue";
-import { Input } from "ant-design-vue";
-import CustomPropertyItem from "./form/CustomPropertyItem.vue";
+import { Form, Input } from "ant-design-vue";
+import { BorderLeftOutlined } from "@ant-design/icons-vue";
 
 const pinia = inject<CustomProps>(propsSymbol);
 
 const canvasRef = ref<HTMLDivElement>();
 const modalVisible = ref<boolean>(false);
 const formData = ref<BPMNModdle.BaseElement>();
-const currentElementProperties = ref<ElementPropertyAttribute[] | []>([]);
+const currentElementDefinition = ref<ElementAttribute>();
 const currentElementData = ref<NodeConfig | EdgeConfig | undefined>();
 
 watch(
@@ -48,10 +47,10 @@ watch(
   { deep: true },
 );
 
-const getCustomComponent = (item: ElementPropertyAttribute) => {
+const getCustomComponent = (entry: EntryAttribute) => {
   const defaultAttributes = { allowClear: true };
   const defaultFormItem = [Input];
-  const [component, options] = item?.component || defaultFormItem;
+  const [component, options] = entry?.component || defaultFormItem;
   return { component, options: { ...defaultAttributes, ...options } };
 };
 
@@ -67,16 +66,16 @@ onMounted(async () => {
   lf.extension.dndPanel.setPatternItems(patternItems);
 
   lf.on("element:click", ({ data }) => {
-    currentElementProperties.value = [];
+    currentElementDefinition.value = undefined;
     currentElementData.value = data;
     const type = ["polyline"].includes(data.type) ? "bpmn:sequenceFlow" : data.type;
-    if (type && elementProperties[type]?.properties) {
-      currentElementProperties.value = elementProperties[type].properties;
+    if (type && elementsByType[type]) {
+      currentElementDefinition.value = elementsByType[type];
     }
     if (!modalVisible.value) modalVisible.value = true;
   });
   lf.on("blank:click", data => {
-    currentElementProperties.value = elementProperties["bpmn:process"].properties || [];
+    currentElementDefinition.value = elementsByType["bpmn:process"] || [];
     currentElementData.value = undefined;
     console.log("blank:click", data, formData.value);
     if (!modalVisible.value) modalVisible.value = true;
@@ -103,31 +102,32 @@ onMounted(async () => {
     <a-drawer
       class="drawer"
       v-model:visible="modalVisible"
+      :title="currentElementDefinition?.label"
+      placement="right"
       :mask="false"
-      title="属性"
-      placement="bottom"
       :get-container="false"
     >
-      <a-form layout="inline" :model="formData">
-        <a-tabs tabPosition="right">
-          <a-tab-pane key="1" tab="属性">
+      <a-form :model="formData" layout="vertical">
+        <a-tabs tabPosition="top" size="small">
+          <a-tab-pane
+            v-for="group in currentElementDefinition?.items"
+            :key="group.id"
+            :tab="group.label"
+          >
             <a-form-item
-              v-for="item in currentElementProperties"
-              :label="item.label"
-              :required="item.required"
+              :label="entry.label"
+              :required="entry.required"
+              v-for="entry in group.entries"
             >
               <component
-                :is="getCustomComponent(item).component"
-                :item="item"
+                :is="getCustomComponent(entry).component"
+                :entry="entry"
                 :bpmn-element="formData"
-                v-model:value="formData[item.key]"
+                v-model:value="formData[entry.id]"
+                v-bind="getCustomComponent(entry).options || {}"
               />
             </a-form-item>
           </a-tab-pane>
-          <a-tab-pane key="2" tab="扩展">
-            <custom-property-item></custom-property-item>
-          </a-tab-pane>
-          <a-tab-pane key="3" tab="事件"></a-tab-pane>
         </a-tabs>
       </a-form>
     </a-drawer>
@@ -140,5 +140,10 @@ onMounted(async () => {
 
 .ant-tabs {
   width: 100%;
+}
+
+.icon-layout {
+  cursor: pointer;
+  font-size: larger;
 }
 </style>

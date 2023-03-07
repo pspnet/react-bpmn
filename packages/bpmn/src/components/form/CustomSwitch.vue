@@ -2,16 +2,11 @@
 import { PropType, ref } from "vue";
 import { defineComponent, h } from "vue";
 import { Form, Switch } from "ant-design-vue";
-import { ElementPropertyAttribute } from "../../assets/properties";
 
 export default defineComponent({
   props: {
     value: {
       type: Boolean,
-      required: true,
-    },
-    item: {
-      type: Object as PropType<ElementPropertyAttribute>,
       required: true,
     },
   },

@@ -1,136 +1,169 @@
-import { OptionListProps } from "ant-design-vue/es/vc-select/OptionList";
+import {OptionListProps} from "ant-design-vue/es/vc-select/OptionList";
 
-export interface ElementPropertyAttribute {
-  key: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  value?: any;
-  component?: [any] | [any, Record<string, any>];
-}
 
 export interface ElementAttribute {
-  [key: string]: {
-    title?: string;
-    properties: ElementPropertyAttribute[];
-  };
+    id: string;
+    label: string;
+    items: GroupAttribute[]
 }
 
-import { markRaw } from "vue";
-import { Input, Select, Switch } from "ant-design-vue";
+export interface GroupAttribute {
+    id: string;
+    label: string;
+    entries: EntryAttribute[]
+}
+
+export interface EntryAttribute {
+    id: string;
+    label: string;
+    type?: string;
+    required?: boolean;
+    value?: any;
+    component?: [any] | [any, Record<string, any>];
+}
+
+import {markRaw} from "vue";
+import {Input} from "ant-design-vue";
 import CustomDocumentInput from "../components/form/CustomDocumentInput.vue";
-import { DefaultOptionType } from "ant-design-vue/lib/vc-select/Select";
+import {DefaultOptionType} from "ant-design-vue/lib/vc-select/Select";
 import CustomSwitch from "../components/form/CustomSwitch.vue";
 import CustomPropertyItem from "../components/form/CustomPropertyItem.vue";
 
-const documentation: ElementPropertyAttribute = {
-  key: "documentation",
-  label: "文档",
-  type: "bpmn:Documentation",
-  component: [markRaw(CustomDocumentInput)],
+const documentation: EntryAttribute = {
+    id: "documentation",
+    label: "文档",
+    type: "bpmn:Documentation",
+    component: [markRaw(CustomDocumentInput)],
 };
 
-const extensionElements: ElementPropertyAttribute = {
-  key: "extensionElements",
-  label: "自定义属性",
-  type: "bpmn:ExtensionElements",
-  component: [markRaw(CustomPropertyItem)],
+const extensionElements: EntryAttribute = {
+    id: "extensionElements",
+    label: "自定义属性",
+    type: "bpmn:ExtensionElements",
+    component: [markRaw(CustomPropertyItem)],
 };
 
 const options: DefaultOptionType[] = [
-  { label: "是", value: "true" },
-  { label: "否", value: "false" },
+    {label: "是", value: "true"},
+    {label: "否", value: "false"},
 ];
 
-const id: ElementPropertyAttribute = {
-  key: "id",
-  label: "ID",
+const id: EntryAttribute = {
+    id: "id",
+    label: "ID",
 };
 
-const name: ElementPropertyAttribute = {
-  key: "name",
-  label: "名称",
+const name: EntryAttribute = {
+    id: "name",
+    label: "名称",
 };
 
-const elements: ElementAttribute = {
-  "bpmn:definitions": {
-    properties: [
-      {
-        key: "targetNamespace",
-        label: "命名空间",
-        value: "https://www.activiti.org",
-      },
-    ],
-  },
-  "bpmn:startEvent": {
-    title: "开始",
-    properties: [
-      id,
-      name,
-      {
-        key: "initiator",
-        label: "创建者",
-      },
-    ],
-  },
-  "bpmn:process": {
-    title: "流程",
-    properties: [
-      id,
-      name,
-      {
-        key: "isExecutable",
-        label: "可执行文件",
-        type: "Boolean",
-        component: [markRaw(CustomSwitch)],
-      },
-      {
-        key: "versionTag",
-        label: "版本标签",
-      },
-      documentation,
-    ],
-  },
+const createGeneralGroup = (entries: EntryAttribute[] = []): GroupAttribute => {
+    return {
+        id: "general",
+        label: "属性",
+        entries: [id, name, ...entries]
+    }
+}
 
-  "bpmn:sequenceFlow": {
-    properties: [
-      id,
-      name,
-      { key: "conditionExpression", label: "条件", type: "Condition" },
-      documentation,
-    ],
-  },
+const createExtensionGroup = (entries: EntryAttribute[] = []): GroupAttribute => {
+    return {
+        id: "extension",
+        label: "扩展",
+        entries: [...entries]
+    }
+}
 
-  "bpmn:userTask": {
-    title: "用户任务",
-    properties: [
-      id,
-      { ...name, component: [markRaw(Input), { required: true }] },
-      { key: "assignee", label: "受理人" },
-      { key: "candidateUsers", label: "候选用户" },
-      { key: "candidateGroups", label: "候选组" },
-      { key: "priority", label: "优先级" },
-      documentation,
-      extensionElements,
-    ],
-  },
+const createEventGroup = (entries: EntryAttribute[] = []): GroupAttribute => {
+    return {
+        id: "listener",
+        label: "事件",
+        entries: []
+    }
+}
 
-  "bpmn:serviceTask": {
-    title: "系统任务",
-    properties: [id, name, documentation],
-  },
-  // "bpmn:task": {
-  //   title: "任务",
-  //   properties: [],
-  // },
-  "bpmn:exclusiveGateway": {
-    title: "排他网关",
-    properties: [id, name],
-  },
-  "bpmn:endEvent": {
-    title: "结束",
-    properties: [id, name],
-  },
-};
+const elements: ElementAttribute[] = [
+    {
+        id: "bpmn:definitions",
+        label: "",
+        items: [createGeneralGroup([
+            {
+                id: "targetNamespace",
+                label: "命名空间"
+            }
+        ])]
+    }, {
+        id: "bpmn:process",
+        label: "流程",
+        items: [createGeneralGroup([
+            {
+                id: "isExecutable",
+                label: "可执行",
+                component: [markRaw(CustomSwitch)]
+            },
+            {
+                id: "versionTag",
+                label: "版本标签"
+            },
+            documentation
+        ])]
+    }, {
+        id: "bpmn:sequenceFlow",
+        label: "顺序流",
+        items: [
+            createGeneralGroup([
+                {id: "conditionExpression", label: "条件", type: "Condition"},
+                documentation
+            ])
+        ]
+    }, {
+        id: "bpmn:startEvent",
+        label: "开始事件",
+        items: [
+            createGeneralGroup([
+                {
+                    id: "initiator",
+                    label: "创建者",
+                },
+            ])
+        ]
+    }, {
+        id: "bpmn:endEvent",
+        label: "结束事件",
+        items: [
+            createGeneralGroup()
+        ]
+    }, {
+        id: "bpmn:userTask",
+        label: "用户任务",
+        items: [
+            createGeneralGroup([
+                {id: "assignee", label: "受理人"},
+                {id: "candidateUsers", label: "候选用户"},
+                {id: "candidateGroups", label: "候选组"},
+                {id: "priority", label: "优先级"},
+                documentation
+            ]),
+            createExtensionGroup([
+                {id: "extensionElements", label:"",component: [CustomPropertyItem]}
+            ]),
+            createEventGroup()
+        ]
+    }, {
+        id: "bpmn:serviceTask",
+        label: "系统任务",
+        items: [
+            createGeneralGroup([documentation]),
+            createExtensionGroup(),
+            createEventGroup()
+        ]
+    }, {
+        id: "bpmn:exclusiveGateway",
+        label: "排他网关",
+        items: [createGeneralGroup()]
+    }
+]
 
-export default elements;
+const elementsByType: { [key: string]: ElementAttribute } = Object.fromEntries(elements.map(element => [element.id, element]));
+
+export {elements, elementsByType, createGeneralGroup, createEventGroup, createExtensionGroup};
